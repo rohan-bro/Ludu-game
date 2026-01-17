@@ -3,63 +3,120 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>FF Fixed Edition</title>
+    <title>FF Master Edition</title>
     <style>
-        :root { --gold: #ffcc00; --cyan: #00ffff; }
-        body { margin: 0; overflow: hidden; font-family: 'Arial'; background: #111; color: white; }
-        .screen { position: absolute; width: 100%; height: 100%; display: none; flex-direction: column; z-index: 100; }
-        .active { display: flex; }
-
-        /* LOBBY UI - Solid Blue/Dark Gradient for stability */
-        #lobby { background: linear-gradient(#0052cc, #001a33); }
-        .top-bar { position: absolute; top: 10px; width: 100%; display: flex; justify-content: space-between; padding: 0 15px; box-sizing: border-box; }
-        .profile-box { background: rgba(0,0,0,0.8); padding: 10px; border-left: 4px solid var(--gold); }
+        :root { --gold: #ffcc00; --red: #ff3333; --cyan: #00ffff; }
+        body { margin: 0; overflow: hidden; background: #000; font-family: Arial; touch-action: none; }
         
-        #settings-btn { background: rgba(255,255,255,0.1); border: 1px solid white; color: white; padding: 5px 15px; cursor: pointer; }
-        #start-btn { position: absolute; bottom: 30px; right: 20px; padding: 15px 50px; background: var(--gold); color: black; border: none; font-weight: bold; cursor: pointer; }
+        #game-map { position: relative; width: 100vw; height: 100vh; background: url('https://i.ibb.co/B2v44Yn/bermuda.jpg') center/cover; }
 
-        /* SETTINGS - From your reference image */
-        #settings-menu { background: #0c0c0c; display: none; z-index: 2000; flex-direction: row; }
-        .sidebar { width: 200px; background: #050505; border-right: 1px solid #222; }
-        .side-btn { width: 100%; padding: 15px; background: none; border: none; color: #888; text-align: left; cursor: pointer; }
-        .side-btn.active { background: #1a1a1a; color: var(--gold); border-left: 3px solid var(--gold); }
-        
-        .content { flex-grow: 1; padding: 30px; }
-        .slider-row { display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; }
-        input[type="range"] { width: 60%; accent-color: var(--gold); }
+        /* DANGER ZONE */
+        #danger-zone {
+            position: absolute; width: 250px; height: 250px; background: rgba(255, 0, 0, 0.2);
+            border: 3px dashed var(--red); border-radius: 50%; display: none; z-index: 300;
+        }
+
+        /* AIRDROP */
+        #airdrop {
+            position: absolute; top: -100px; width: 50px; height: 50px; background: #cc0000;
+            border: 2px solid #fff; display: none; transition: top 4s linear; z-index: 400;
+        }
+
+        /* GLOO WALL */
+        .gloo-wall {
+            position: absolute; width: 100px; height: 60px; background: rgba(0, 200, 255, 0.6);
+            border: 2px solid #fff; border-radius: 40% 40% 5% 5%; z-index: 450;
+        }
+
+        /* CUSTOMIZABLE HUD */
+        .hud-btn {
+            position: absolute; background: rgba(0,0,0,0.6); border: 2px solid #fff;
+            border-radius: 50%; color: white; display: flex; align-items: center; justify-content: center;
+            font-weight: bold; cursor: move; z-index: 1000;
+        }
+        #fire-btn { bottom: 50px; right: 50px; width: 80px; height: 80px; }
+        #gloo-btn { bottom: 150px; right: 40px; width: 70px; height: 70px; background: rgba(0,100,255,0.4); }
+
+        /* SETTINGS UI */
+        #hud-editor {
+            position: fixed; top: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.8);
+            display: none; flex-direction: column; align-items: center; justify-content: center; z-index: 2000;
+        }
     </style>
 </head>
 <body>
 
-    <div id="lobby" class="screen active">
-        <div class="top-bar">
-            <div class="profile-box">
-                <b>Mood055j8</b><br><small>Lv. 84</small>
-            </div>
-            <button id="settings-btn" onclick="openSettings()">⚙️ SETTINGS</button>
-        </div>
-        <button id="start-btn" onclick="alert('Starting Match...')">START</button>
+    <div id="game-map">
+        <div id="danger-zone"></div>
+        <div id="airdrop" onclick="lootDrop()"></div>
+        <div id="revive-pt" style="position:absolute; top:20%; left:20%; width:80px; height:80px; border:2px solid var(--cyan); border-radius:50%; background:rgba(0,255,255,0.1);"></div>
+
+        <div id="fire-btn" class="hud-btn" onmousedown="startDrag(this)">🔥</div>
+        <div id="gloo-btn" class="hud-btn" onclick="useGloo()" onmousedown="startDrag(this)">🛡️</div>
+
+        <button onclick="toggleEditor()" style="position:absolute; top:10px; right:10px;">⚙️ HUD SETTINGS</button>
+        <button onclick="spawnDanger()" style="position:absolute; top:10px; left:10px;">⚠️ DANGER</button>
+        <button onclick="callDrop()" style="position:absolute; top:50px; left:10px;">📦 DROP</button>
     </div>
 
-    <div id="settings-menu" class="screen">
-        <div class="sidebar">
-            <button class="side-btn active">SENSITIVITY</button>
-            <button class="side-btn">CONTROLS</button>
-            <button class="side-btn">AUTO PICKUP</button>
-            <button onclick="closeSettings()" style="margin-top:auto; color:red; padding:20px; background:none; border:none; cursor:pointer;">EXIT</button>
-        </div>
-        <div class="content">
-            <h2 style="border-left: 4px solid var(--gold); padding-left: 10px;">SENSITIVITY</h2>
-            <div class="slider-row"><span>General</span><input type="range" value="100"> 100</div>
-            <div class="slider-row"><span>Red Dot</span><input type="range" value="100"> 100</div>
-            <div class="slider-row"><span>Sniper Scope</span><input type="range" value="40"> 40</div>
-            <button style="float:right; margin-top:50px; padding:10px 30px; background:white; color:black; border:none;">RESET</button>
+    <div id="hud-editor">
+        <div style="background:#222; padding:20px; border:2px solid var(--gold);">
+            <h3>CUSTOM HUD MODE</h3>
+            <p>Drag buttons to move. Use slider to resize:</p>
+            <input type="range" min="40" max="150" value="80" oninput="resizeHUD(this.value)">
+            <br><br>
+            <button onclick="toggleEditor()">SAVE & EXIT</button>
         </div>
     </div>
 
     <script>
-        function openSettings() { document.getElementById('settings-menu').style.display = 'flex'; }
-        function closeSettings() { document.getElementById('settings-menu').style.display = 'none'; }
+        let selected = null;
+
+        // Gloo Wall Logic
+        function useGloo() {
+            const wall = document.createElement('div');
+            wall.className = 'gloo-wall';
+            wall.style.left = "45%"; wall.style.top = "50%";
+            document.getElementById('game-map').appendChild(wall);
+            setTimeout(() => wall.remove(), 4000);
+        }
+
+        // Airdrop Logic
+        function callDrop() {
+            const drop = document.getElementById('airdrop');
+            drop.style.display = 'block'; drop.style.top = '70%';
+        }
+
+        function lootDrop() { alert("Looted: AWM & Groza!"); }
+
+        // Danger Zone Logic
+        function spawnDanger() {
+            const dz = document.getElementById('danger-zone');
+            dz.style.display = 'block'; dz.style.left = '30%'; dz.style.top = '20%';
+            setTimeout(() => dz.style.display = 'none', 6000);
+        }
+
+        // HUD Drag & Resize
+        function toggleEditor() {
+            const ed = document.getElementById('hud-editor');
+            ed.style.display = (ed.style.display === 'flex') ? 'none' : 'flex';
+        }
+
+        function startDrag(el) { selected = el; }
+
+        document.onmousemove = (e) => {
+            if(selected && document.getElementById('hud-editor').style.display === 'flex') {
+                selected.style.left = e.clientX - 40 + "px";
+                selected.style.top = e.clientY - 40 + "px";
+                selected.style.bottom = 'auto'; selected.style.right = 'auto';
+            }
+        };
+        document.onmouseup = () => { selected = null; };
+
+        function resizeHUD(val) {
+            const btns = document.querySelectorAll('.hud-btn');
+            btns.forEach(b => { b.style.width = val + "px"; b.style.height = val + "px"; });
+        }
     </script>
 </body>
 </html>
