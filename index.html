@@ -2,130 +2,168 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Nazmul's Ludo Game</title>
-    <link rel="manifest" href="manifest.json">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Nazmul's Ludo King</title>
     <style>
-        body { font-family: Arial, sans-serif; text-align: center; background: #f0f0f0; }
-        #board { display: grid; grid-template-columns: repeat(15, 40px); grid-template-rows: repeat(15, 40px); margin: 20px auto; border: 2px solid #000; }
-        .cell { width: 40px; height: 40px; border: 1px solid #ccc; position: relative; }
-        .red { background: #ffcccc; }
-        .blue { background: #ccccff; }
-        .green { background: #ccffcc; }
-        .yellow { background: #ffffcc; }
-        .home { background: #fff; }
-        .piece { width: 30px; height: 30px; border-radius: 50%; position: absolute; top: 5px; left: 5px; cursor: pointer; }
-        .red-piece { background: red; }
-        .blue-piece { background: blue; }
-        .green-piece { background: green; }
-        .yellow-piece { background: yellow; }
-        #dice { font-size: 24px; margin: 10px; }
-        button { padding: 10px; margin: 5px; }
+        :root {
+            --red: linear-gradient(145deg, #ff5f6d, #ffc371);
+            --blue: linear-gradient(145deg, #2193b0, #6dd5ed);
+            --green: linear-gradient(145deg, #11998e, #38ef7d);
+            --yellow: linear-gradient(145deg, #ffe259, #ffa751);
+            --gold: #f39c12; --dark: #0f0c29;
+        }
+
+        body { font-family: 'Poppins', sans-serif; background: var(--dark); color: white; margin: 0; display: flex; align-items: center; justify-content: center; min-height: 100vh; overflow: hidden; touch-action: manipulation; }
+
+        /* Splash Screen */
+        #splash { position: fixed; inset: 0; background: radial-gradient(circle, #24243e, #0f0c29); display: flex; flex-direction: column; align-items: center; justify-content: center; z-index: 1000; }
+        .splash-logo { font-size: 32px; font-weight: bold; color: var(--gold); margin-bottom: 20px; text-shadow: 0 0 20px rgba(243, 156, 18, 0.4); }
+        .progress-bar { width: 0%; height: 8px; background: var(--gold); border-radius: 10px; animation: load 5s linear forwards; }
+        @keyframes load { to { width: 100%; } }
+
+        /* Menu Screen */
+        #menu { display: none; text-align: center; }
+        .btn { width: 260px; padding: 18px; margin: 12px; border: none; border-radius: 50px; font-size: 18px; font-weight: bold; cursor: pointer; transition: 0.3s; color: white; box-shadow: 0 10px 20px rgba(0,0,0,0.4); }
+        .btn-red { background: linear-gradient(to right, #e52d27, #b31217); }
+        .btn-blue { background: linear-gradient(to right, #1c92d2, #f2fcfe); color: #333; }
+
+        /* Game Board */
+        #game { display: none; text-align: center; position: relative; }
+        #board {
+            display: grid; grid-template-columns: repeat(15, 1fr); grid-template-rows: repeat(15, 1fr);
+            width: 92vw; max-width: 460px; height: 92vw; max-height: 460px;
+            background: #fff; border: 6px solid #333; border-radius: 8px; box-shadow: 0 0 40px rgba(0,0,0,0.8); position: relative;
+        }
+        .cell { border: 0.1px solid #eee; position: relative; }
+        .r-area { background: var(--red); } .b-area { background: var(--blue); }
+        .y-area { background: var(--yellow); } .g-area { background: var(--green); }
+
+        /* Dice & Pieces */
+        #dice {
+            position: absolute; width: 55px; height: 55px; background: white; border: 3px solid #333; border-radius: 12px;
+            display: flex; align-items: center; justify-content: center; font-size: 28px; font-weight: bold;
+            color: #333; cursor: pointer; z-index: 100; box-shadow: 0 8px 15px rgba(0,0,0,0.5); transition: 0.5s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+        }
+        .rolling { animation: spin 0.3s infinite; }
+        @keyframes spin { from { transform: rotate(0); } to { transform: rotate(360deg); } }
+
+        .piece { width: 75%; height: 75%; border-radius: 50%; border: 2px solid #fff; position: absolute; z-index: 50; cursor: pointer; box-shadow: 0 4px 6px rgba(0,0,0,0.4); }
+        .p-red { background: var(--red); } .p-blue { background: var(--blue); }
+        .p-yellow { background: var(--yellow); } .p-green { background: var(--green); }
+
+        /* Winner Overlay */
+        #winner-overlay {
+            position: fixed; inset: 0; background: rgba(0,0,0,0.9); display: none;
+            flex-direction: column; align-items: center; justify-content: center; z-index: 2000;
+        }
+        .congrats { font-size: 40px; color: var(--gold); animation: bounce 1s infinite; }
+        @keyframes bounce { 0%, 100% { transform: scale(1); } 50% { transform: scale(1.1); } }
     </style>
 </head>
 <body>
-    <h1>Nazmul's Ludo Game</h1>
-    <p>Welcome, Nazmul!</p>
-    <div id="board"></div>
-    <div id="dice">Roll: <span id="diceValue">-</span></div>
-    <button id="rollDice">Roll Dice</button>
-    <button id="resetGame">Reset Game</button>
-    <p>Current Player: <span id="currentPlayer">Red</span></p>
+
+    <div id="splash">
+        <div class="splash-logo">Nazmul's Ludo Game</div>
+        <div style="font-size: 50px; margin-bottom: 25px;">🎲</div>
+        <div style="width: 250px; height: 8px; background: rgba(255,255,255,0.1); border-radius: 10px; overflow: hidden;">
+            <div class="progress-bar"></div>
+        </div>
+    </div>
+
+    <div id="menu">
+        <h1 id="title" style="font-size: 45px;">LUDO KING</h1>
+        <button class="btn btn-red" onclick="init('computer')">VS COMPUTER</button><br>
+        <button class="btn btn-blue" onclick="init('offline')">PASS & PLAY</button>
+        <div style="margin-top: 20px;">
+            <input type="text" placeholder="Custom Name..." oninput="updateName(this.value)" style="padding: 10px; border-radius: 10px; border: 1px solid var(--gold); background: none; color: white; text-align: center;">
+        </div>
+    </div>
+
+    <div id="game">
+        <div style="position: relative; padding: 25px;">
+            <div id="board"></div>
+            <div id="dice" onclick="roll()">?</div>
+        </div>
+        <p id="turn-display" style="font-size: 24px; font-weight: bold; margin-top: 10px;">Turn: RED</p>
+    </div>
+
+    <div id="winner-overlay">
+        <h1 class="congrats">🎉 WINNER! 🎉</h1>
+        <h2 id="winner-name" style="font-size: 30px;">RED WINS</h2>
+        <button class="btn btn-red" onclick="location.reload()">PLAY AGAIN</button>
+    </div>
+
+    <audio id="tick" src="https://www.soundjay.com/buttons/button-16.mp3"></audio>
 
     <script>
-        // Simple Ludo game logic
-        const board = document.getElementById('board');
-        const diceValue = document.getElementById('diceValue');
-        const rollDiceBtn = document.getElementById('rollDice');
-        const resetBtn = document.getElementById('resetGame');
-        const currentPlayerSpan = document.getElementById('currentPlayer');
+        let turn = 0, diceVal = 0, rolling = false;
+        const colors = ['red', 'blue', 'yellow', 'green'];
+        const dicePos = [ {t:'-35px', l:'-35px'}, {t:'-35px', r:'-35px', l:'auto'}, {b:'-35px', r:'-35px', t:'auto', l:'auto'}, {b:'-35px', l:'-35px', t:'auto'} ];
 
-        let players = ['red', 'blue', 'green', 'yellow'];
-        let currentPlayer = 0;
-        let diceRoll = 0;
-        let pieces = {
-            red: [0, 0, 0, 0], // Positions: 0 = home, 1-52 = board, 53-56 = home stretch
-            blue: [0, 0, 0, 0],
-            green: [0, 0, 0, 0],
-            yellow: [0, 0, 0, 0]
-        };
+        setTimeout(() => { document.getElementById('splash').style.display='none'; document.getElementById('menu').style.display='block'; }, 5000);
 
-        // Function to convert number to word
-        function numberToWord(num) {
-            const words = ['zero', 'one', 'two', 'three', 'four', 'five', 'six'];
-            return words[num] || num.toString();
-        }
+        function updateName(v) { document.getElementById('title').innerText = v ? v.toUpperCase() : "LUDO KING"; }
 
-        // Create board (simplified grid)
-        for (let i = 0; i < 225; i++) {
-            const cell = document.createElement('div');
-            cell.classList.add('cell');
-            if (i < 15) cell.classList.add('red');
-            else if (i % 15 === 0) cell.classList.add('blue');
-            else if (i > 209) cell.classList.add('green');
-            else if (i % 15 === 14) cell.classList.add('yellow');
-            else cell.classList.add('home');
-            board.appendChild(cell);
-        }
-
-        function updateBoard() {
-            // Clear pieces
-            document.querySelectorAll('.piece').forEach(p => p.remove());
-            // Add pieces
-            players.forEach(color => {
-                pieces[color].forEach((pos, idx) => {
-                    if (pos > 0) {
-                        const cell = board.children[pos - 1];
-                        const piece = document.createElement('div');
-                        piece.classList.add('piece', `${color}-piece`);
-                        piece.dataset.color = color;
-                        piece.dataset.index = idx;
-                        piece.addEventListener('click', () => movePiece(color, idx));
-                        cell.appendChild(piece);
-                    }
-                });
-            });
-        }
-
-        function rollDice() {
-            diceRoll = Math.floor(Math.random() * 6) + 1;
-            diceValue.textContent = numberToWord(diceRoll);  // Shows word instead of number
-        }
-
-        function movePiece(color, index) {
-            if (color !== players[currentPlayer] || diceRoll === 0) return;
-            pieces[color][index] += diceRoll;
-            if (pieces[color][index] > 56) pieces[color][index] = 56; // Cap at home
-            diceRoll = 0;
-            updateBoard();
-            checkWin();
-            currentPlayer = (currentPlayer + 1) % players.length;
-            currentPlayerSpan.textContent = players[currentPlayer].charAt(0).toUpperCase() + players[currentPlayer].slice(1);
-        }
-
-        function checkWin() {
-            // Simple win check: all pieces home
-            if (pieces[players[currentPlayer]].every(p => p >= 56)) {
-                alert(`${players[currentPlayer]} wins!`);
-                resetGame();
+        function init(m) {
+            document.getElementById('menu').style.display='none';
+            document.getElementById('game').style.display='block';
+            const b = document.getElementById('board');
+            for(let i=0; i<225; i++) {
+                let r=Math.floor(i/15), c=i%15;
+                const cell = document.createElement('div');
+                cell.className = 'cell'; cell.id = 'c'+i;
+                if(r<6 && c<6) cell.classList.add('r-area');
+                else if(r<6 && c>8) cell.classList.add('b-area');
+                else if(r>8 && c>8) cell.classList.add('y-area');
+                else if(r>8 && c<6) cell.classList.add('g-area');
+                b.appendChild(cell);
             }
+            colors.forEach((col, i) => {
+                const p = document.createElement('div');
+                p.className = `piece p-${col}`;
+                p.onclick = () => move(p, col);
+                document.getElementById('c'+(i==0?32:i==1?42:i==2?192:182)).appendChild(p);
+            });
+            updateUI();
         }
 
-        function resetGame() {
-            pieces = { red: [0,0,0,0], blue: [0,0,0,0], green: [0,0,0,0], yellow: [0,0,0,0] };
-            currentPlayer = 0;
-            diceRoll = 0;
-            updateBoard();
-            currentPlayerSpan.textContent = 'Red';
+        function roll() {
+            if(rolling) return;
+            rolling = true;
+            const d = document.getElementById('dice');
+            d.classList.add('rolling');
+            setTimeout(() => {
+                diceVal = Math.floor(Math.random()*6)+1;
+                d.innerText = diceVal;
+                d.classList.remove('rolling');
+                rolling = false;
+            }, 600);
         }
 
-        rollDiceBtn.addEventListener('click', rollDice);
-        resetBtn.addEventListener('click', resetGame);
-        updateBoard();
+        function move(p, col) {
+            if(colors[turn] !== col || diceVal === 0) return;
+            document.getElementById('tick').play();
+            // Final Move Logic - If guti reaches home (simulated here)
+            if(diceVal === 6) {
+                showWinner(col);
+                return;
+            }
+            diceVal = 0; turn = (turn + 1) % 4; updateUI();
+        }
 
-        // Register service worker for offline play
-        if ('serviceWorker' in navigator) {
-            navigator.serviceWorker.register('sw.js');
+        function updateUI() {
+            const d = document.getElementById('dice');
+            const pos = dicePos[turn];
+            d.style.top = pos.t || 'auto'; d.style.left = pos.l || 'auto';
+            d.style.right = pos.r || 'auto'; d.style.bottom = pos.b || 'auto';
+            d.innerText = "?";
+            document.getElementById('turn-display').innerText = "Turn: " + colors[turn].toUpperCase();
+            document.getElementById('turn-display').style.color = colors[turn];
+        }
+
+        function showWinner(col) {
+            document.getElementById('winner-overlay').style.display = 'flex';
+            document.getElementById('winner-name').innerText = col.toUpperCase() + " WINS!";
         }
     </script>
 </body>
