@@ -3,167 +3,156 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Nazmul's Ludo King</title>
+    <title>Nazmul's Ludo King Pro</title>
     <style>
         :root {
-            --red: linear-gradient(145deg, #ff5f6d, #ffc371);
-            --blue: linear-gradient(145deg, #2193b0, #6dd5ed);
-            --green: linear-gradient(145deg, #11998e, #38ef7d);
-            --yellow: linear-gradient(145deg, #ffe259, #ffa751);
-            --gold: #f39c12; --dark: #0f0c29;
+            --red: #ea4335; --blue: #4285f4; --green: #34a853; --yellow: #fbbc05;
+            --bg: #0b0e14;
         }
-
-        body { font-family: 'Poppins', sans-serif; background: var(--dark); color: white; margin: 0; display: flex; align-items: center; justify-content: center; min-height: 100vh; overflow: hidden; touch-action: manipulation; }
+        body { font-family: 'Poppins', sans-serif; background: var(--bg); display: flex; align-items: center; justify-content: center; min-height: 100vh; margin: 0; color: white; overflow: hidden; }
 
         /* Splash Screen */
-        #splash { position: fixed; inset: 0; background: radial-gradient(circle, #24243e, #0f0c29); display: flex; flex-direction: column; align-items: center; justify-content: center; z-index: 1000; }
-        .splash-logo { font-size: 32px; font-weight: bold; color: var(--gold); margin-bottom: 20px; text-shadow: 0 0 20px rgba(243, 156, 18, 0.4); }
-        .progress-bar { width: 0%; height: 8px; background: var(--gold); border-radius: 10px; animation: load 5s linear forwards; }
+        #splash { position: fixed; inset: 0; background: #000; display: flex; flex-direction: column; align-items: center; justify-content: center; z-index: 1000; }
+        .bar { width: 220px; height: 8px; background: #222; border-radius: 10px; margin-top: 20px; overflow: hidden; border: 1px solid #444; }
+        .progress { width: 0%; height: 100%; background: var(--yellow); animation: load 5s linear forwards; }
         @keyframes load { to { width: 100%; } }
 
-        /* Menu Screen */
+        /* Menu */
         #menu { display: none; text-align: center; }
-        .btn { width: 260px; padding: 18px; margin: 12px; border: none; border-radius: 50px; font-size: 18px; font-weight: bold; cursor: pointer; transition: 0.3s; color: white; box-shadow: 0 10px 20px rgba(0,0,0,0.4); }
+        .btn { width: 260px; padding: 18px; margin: 12px; border: none; border-radius: 50px; font-size: 18px; font-weight: bold; cursor: pointer; color: white; box-shadow: 0 10px 20px rgba(0,0,0,0.5); transition: 0.3s; }
         .btn-red { background: linear-gradient(to right, #e52d27, #b31217); }
         .btn-blue { background: linear-gradient(to right, #1c92d2, #f2fcfe); color: #333; }
 
-        /* Game Board */
-        #game { display: none; text-align: center; position: relative; }
-        #board {
+        /* Board Styling */
+        #game-screen { display: none; text-align: center; }
+        .ludo-board {
+            width: 95vw; max-width: 450px; height: 95vw; max-height: 450px;
+            background: #fff; border: 10px solid #5d4037; border-radius: 10px;
             display: grid; grid-template-columns: repeat(15, 1fr); grid-template-rows: repeat(15, 1fr);
-            width: 92vw; max-width: 460px; height: 92vw; max-height: 460px;
-            background: #fff; border: 6px solid #333; border-radius: 8px; box-shadow: 0 0 40px rgba(0,0,0,0.8); position: relative;
+            box-shadow: 0 20px 50px rgba(0,0,0,0.8); position: relative;
         }
-        .cell { border: 0.1px solid #eee; position: relative; }
-        .r-area { background: var(--red); } .b-area { background: var(--blue); }
-        .y-area { background: var(--yellow); } .g-area { background: var(--green); }
 
-        /* Dice & Pieces */
-        #dice {
-            position: absolute; width: 55px; height: 55px; background: white; border: 3px solid #333; border-radius: 12px;
-            display: flex; align-items: center; justify-content: center; font-size: 28px; font-weight: bold;
-            color: #333; cursor: pointer; z-index: 100; box-shadow: 0 8px 15px rgba(0,0,0,0.5); transition: 0.5s cubic-bezier(0.175, 0.885, 0.32, 1.275);
-        }
+        .cell { border: 0.1px solid rgba(0,0,0,0.08); position: relative; display: flex; align-items: center; justify-content: center; }
+
+        /* Bases */
+        .base { grid-column: span 6; grid-row: span 6; display: grid; grid-template-columns: repeat(2, 1fr); grid-template-rows: repeat(2, 1fr); padding: 20px; gap: 10px; border: 1px solid #000; }
+        .base-red { background: var(--red); grid-area: 10/1/16/7; }
+        .base-green { background: var(--green); grid-area: 1/1/7/7; }
+        .base-yellow { background: var(--yellow); grid-area: 1/10/7/16; }
+        .base-blue { background: var(--blue); grid-area: 10/10/16/16; }
+        
+        /* White Circles in Bases */
+        .spot { background: white; border-radius: 50%; width: 100%; height: 100%; display: flex; align-items: center; justify-content: center; box-shadow: inset 0 0 10px rgba(0,0,0,0.2); }
+
+        /* Center */
+        .center-home { grid-area: 7/7/10/10; background: #fff; border: 1px solid #000; display: flex; align-items: center; justify-content: center; }
+        .tri-container { width:100%; height:100%; position: relative; background: conic-gradient(var(--green) 45deg, var(--yellow) 45deg 135deg, var(--blue) 135deg 225deg, var(--red) 225deg 315deg, var(--green) 315deg); }
+
+        /* Pieces */
+        .piece { width: 75%; height: 75%; border-radius: 50%; border: 3px solid white; box-shadow: 0 5px 10px rgba(0,0,0,0.4); z-index: 100; cursor: pointer; transition: 0.2s; }
+        .p-red { background: var(--red); } .p-green { background: var(--green); }
+        .p-yellow { background: var(--yellow); } .p-blue { background: var(--blue); }
+
+        /* Safe Icons (Star) */
+        .star::after { content: '★'; color: rgba(0,0,0,0.2); font-size: 24px; }
+
+        /* Dice */
+        #dice-box { position: absolute; width: 60px; height: 60px; background: white; border-radius: 12px; box-shadow: 0 10px 20px rgba(0,0,0,0.5); display: flex; align-items: center; justify-content: center; font-size: 30px; font-weight: bold; color: #333; cursor: pointer; z-index: 500; transition: 0.4s; }
         .rolling { animation: spin 0.3s infinite; }
         @keyframes spin { from { transform: rotate(0); } to { transform: rotate(360deg); } }
-
-        .piece { width: 75%; height: 75%; border-radius: 50%; border: 2px solid #fff; position: absolute; z-index: 50; cursor: pointer; box-shadow: 0 4px 6px rgba(0,0,0,0.4); }
-        .p-red { background: var(--red); } .p-blue { background: var(--blue); }
-        .p-yellow { background: var(--yellow); } .p-green { background: var(--green); }
-
-        /* Winner Overlay */
-        #winner-overlay {
-            position: fixed; inset: 0; background: rgba(0,0,0,0.9); display: none;
-            flex-direction: column; align-items: center; justify-content: center; z-index: 2000;
-        }
-        .congrats { font-size: 40px; color: var(--gold); animation: bounce 1s infinite; }
-        @keyframes bounce { 0%, 100% { transform: scale(1); } 50% { transform: scale(1.1); } }
     </style>
 </head>
 <body>
 
     <div id="splash">
-        <div class="splash-logo">Nazmul's Ludo Game</div>
-        <div style="font-size: 50px; margin-bottom: 25px;">🎲</div>
-        <div style="width: 250px; height: 8px; background: rgba(255,255,255,0.1); border-radius: 10px; overflow: hidden;">
-            <div class="progress-bar"></div>
-        </div>
+        <h1 style="color: var(--yellow); font-size: 32px; letter-spacing: 2px;">NAZMUL'S LUDO KING</h1>
+        <div class="bar"><div class="progress"></div></div>
     </div>
 
     <div id="menu">
-        <h1 id="title" style="font-size: 45px;">LUDO KING</h1>
-        <button class="btn btn-red" onclick="init('computer')">VS COMPUTER</button><br>
-        <button class="btn btn-blue" onclick="init('offline')">PASS & PLAY</button>
-        <div style="margin-top: 20px;">
-            <input type="text" placeholder="Custom Name..." oninput="updateName(this.value)" style="padding: 10px; border-radius: 10px; border: 1px solid var(--gold); background: none; color: white; text-align: center;">
+        <h1 id="m-title" style="font-size: 45px; margin-bottom: 40px;">LUDO KING</h1>
+        <button class="btn btn-red" onclick="start()">VS COMPUTER</button><br>
+        <button class="btn btn-blue" onclick="start()">OFFLINE PLAY</button>
+        <div style="margin-top: 30px;">
+            <input type="text" placeholder="Custom Name..." oninput="document.getElementById('m-title').innerText = this.value.toUpperCase() || 'LUDO KING'" style="padding: 12px; border-radius: 10px; background: none; border: 1px solid var(--yellow); color: white; text-align: center;">
         </div>
     </div>
 
-    <div id="game">
-        <div style="position: relative; padding: 25px;">
-            <div id="board"></div>
-            <div id="dice" onclick="roll()">?</div>
+    <div id="game-screen">
+        <div class="ludo-board" id="board">
+            <div class="base base-green" id="base-g"></div>
+            <div class="base base-yellow" id="base-y"></div>
+            <div class="base base-red" id="base-r"></div>
+            <div class="base base-blue" id="base-b"></div>
+            <div class="center-home"><div class="tri-container"></div></div>
         </div>
-        <p id="turn-display" style="font-size: 24px; font-weight: bold; margin-top: 10px;">Turn: RED</p>
+        <div id="dice-box" onclick="roll()">?</div>
+        <p id="turn-info" style="margin-top: 25px; font-size: 24px; font-weight: bold;">Turn: <span style="color:var(--red)">RED</span></p>
     </div>
-
-    <div id="winner-overlay">
-        <h1 class="congrats">🎉 WINNER! 🎉</h1>
-        <h2 id="winner-name" style="font-size: 30px;">RED WINS</h2>
-        <button class="btn btn-red" onclick="location.reload()">PLAY AGAIN</button>
-    </div>
-
-    <audio id="tick" src="https://www.soundjay.com/buttons/button-16.mp3"></audio>
 
     <script>
-        let turn = 0, diceVal = 0, rolling = false;
-        const colors = ['red', 'blue', 'yellow', 'green'];
-        const dicePos = [ {t:'-35px', l:'-35px'}, {t:'-35px', r:'-35px', l:'auto'}, {b:'-35px', r:'-35px', t:'auto', l:'auto'}, {b:'-35px', l:'-35px', t:'auto'} ];
+        let turn = 0;
+        const colors = ['red', 'green', 'yellow', 'blue'];
+        const dicePos = [{b:'20px', l:'20px'}, {t:'20px', l:'20px'}, {t:'20px', r:'20px', l:'auto'}, {b:'20px', r:'20px', l:'auto'}];
 
         setTimeout(() => { document.getElementById('splash').style.display='none'; document.getElementById('menu').style.display='block'; }, 5000);
 
-        function updateName(v) { document.getElementById('title').innerText = v ? v.toUpperCase() : "LUDO KING"; }
-
-        function init(m) {
+        function start() {
             document.getElementById('menu').style.display='none';
-            document.getElementById('game').style.display='block';
+            document.getElementById('game-screen').style.display='block';
+            createBoard();
+            setupPieces();
+            updateDice();
+        }
+
+        function createBoard() {
             const b = document.getElementById('board');
             for(let i=0; i<225; i++) {
-                let r=Math.floor(i/15), c=i%15;
+                let r = Math.floor(i/15), c = i%15;
+                if((r<6 && c<6) || (r<6 && c>8) || (r>8 && c<6) || (r>8 && c>8) || (r>=6 && r<=8 && c>=6 && c<=8)) continue;
                 const cell = document.createElement('div');
                 cell.className = 'cell'; cell.id = 'c'+i;
-                if(r<6 && c<6) cell.classList.add('r-area');
-                else if(r<6 && c>8) cell.classList.add('b-area');
-                else if(r>8 && c>8) cell.classList.add('y-area');
-                else if(r>8 && c<6) cell.classList.add('g-area');
+                if(r==7 && c<6) cell.style.background = 'var(--red)';
+                if(c==7 && r<6) cell.style.background = 'var(--green)';
+                if(r==7 && c>8) cell.style.background = 'var(--yellow)';
+                if(c==7 && r>8) cell.style.background = 'var(--blue)';
+                if([106, 118, 22, 202, 136, 88, 8, 216].includes(i)) cell.classList.add('star');
                 b.appendChild(cell);
             }
-            colors.forEach((col, i) => {
-                const p = document.createElement('div');
-                p.className = `piece p-${col}`;
-                p.onclick = () => move(p, col);
-                document.getElementById('c'+(i==0?32:i==1?42:i==2?192:182)).appendChild(p);
+        }
+
+        function setupPieces() {
+            ['r', 'g', 'y', 'b'].forEach((c, idx) => {
+                const base = document.getElementById('base-'+c);
+                for(let j=0; j<4; j++) {
+                    const spot = document.createElement('div');
+                    spot.className = 'spot';
+                    const p = document.createElement('div');
+                    p.className = `piece p-${colors[idx]}`;
+                    spot.appendChild(p);
+                    base.appendChild(spot);
+                }
             });
-            updateUI();
         }
 
         function roll() {
-            if(rolling) return;
-            rolling = true;
-            const d = document.getElementById('dice');
-            d.classList.add('rolling');
+            const db = document.getElementById('dice-box');
+            db.classList.add('rolling');
             setTimeout(() => {
-                diceVal = Math.floor(Math.random()*6)+1;
-                d.innerText = diceVal;
-                d.classList.remove('rolling');
-                rolling = false;
+                const v = Math.floor(Math.random()*6)+1;
+                db.innerText = v;
+                db.classList.remove('rolling');
+                setTimeout(() => { turn = (turn+1)%4; updateDice(); }, 1000);
             }, 600);
         }
 
-        function move(p, col) {
-            if(colors[turn] !== col || diceVal === 0) return;
-            document.getElementById('tick').play();
-            // Final Move Logic - If guti reaches home (simulated here)
-            if(diceVal === 6) {
-                showWinner(col);
-                return;
-            }
-            diceVal = 0; turn = (turn + 1) % 4; updateUI();
-        }
-
-        function updateUI() {
-            const d = document.getElementById('dice');
-            const pos = dicePos[turn];
-            d.style.top = pos.t || 'auto'; d.style.left = pos.l || 'auto';
-            d.style.right = pos.r || 'auto'; d.style.bottom = pos.b || 'auto';
-            d.innerText = "?";
-            document.getElementById('turn-display').innerText = "Turn: " + colors[turn].toUpperCase();
-            document.getElementById('turn-display').style.color = colors[turn];
-        }
-
-        function showWinner(col) {
-            document.getElementById('winner-overlay').style.display = 'flex';
-            document.getElementById('winner-name').innerText = col.toUpperCase() + " WINS!";
+        function updateDice() {
+            const db = document.getElementById('dice-box');
+            const p = dicePos[turn];
+            db.style.top = p.t || 'auto'; db.style.left = p.l || 'auto';
+            db.style.right = p.r || 'auto'; db.style.bottom = p.b || 'auto';
+            db.innerText = "?";
+            document.getElementById('turn-info').innerHTML = `Turn: <span style="color:var(--${colors[turn]})">${colors[turn].toUpperCase()}</span>`;
         }
     </script>
 </body>
