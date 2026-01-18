@@ -5,157 +5,120 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>Nazmul's Ludo King Pro</title>
     <style>
-        :root {
-            --red: #f12b24; --blue: #1e88e5; --green: #00c853; --yellow: #ffeb3b;
-            --bg: #1a237e; --gold: #ffd700;
-        }
-        body { font-family: 'Arial', sans-serif; background: var(--bg); display: flex; flex-direction: column; align-items: center; justify-content: center; min-height: 100vh; margin: 0; overflow: hidden; }
+        :root { --red: #f12b24; --blue: #1e88e5; --green: #00c853; --yellow: #ffeb3b; --wood: #5d4037; }
+        body { font-family: 'Arial', sans-serif; background: #1a237e; display: flex; flex-direction: column; align-items: center; justify-content: center; min-height: 100vh; margin: 0; overflow: hidden; }
 
-        /* Premium Download Button */
-        .download-btn {
-            position: fixed; top: 15px; right: 15px; background: linear-gradient(45deg, #f39c12, #ffcc33);
-            color: #000; padding: 10px 18px; border-radius: 30px; font-weight: bold; font-size: 13px;
-            text-decoration: none; box-shadow: 0 4px 15px rgba(0,0,0,0.3); z-index: 5000;
-            display: flex; align-items: center; gap: 6px; border: 2px solid #fff;
-        }
-
-        /* Ludo Board Layout */
-        .board-wrapper { position: relative; padding: 10px; background: #3e2723; border-radius: 10px; box-shadow: 0 10px 30px rgba(0,0,0,0.5); }
-        .ludo-board {
-            display: grid; grid-template-columns: repeat(15, 1fr); grid-template-rows: repeat(15, 1fr);
-            width: 92vw; max-width: 420px; height: 92vw; max-height: 420px;
-            background: #fff; border: 3px solid #000;
-        }
-
-        .cell { border: 1px solid #ccc; position: relative; display: flex; align-items: center; justify-content: center; }
+        /* Board Container */
+        .board-wrapper { position: relative; padding: 15px; background: var(--wood); border-radius: 15px; border: 6px solid #3e2723; box-shadow: 0 15px 40px rgba(0,0,0,0.6); }
+        .ludo-board { display: grid; grid-template-columns: repeat(15, 1fr); grid-template-rows: repeat(15, 1fr); width: 92vw; max-width: 440px; height: 92vw; max-height: 440px; background: #fff; border: 2px solid #000; }
         
-        /* Star Safe Zones (Exact Location from Image) */
-        .star::after { content: '★'; color: #888; font-size: 20px; }
+        .cell { border: 0.5px solid #ccc; position: relative; display: flex; align-items: center; justify-content: center; z-index: 1; }
+        .star-cell::after { content: '★'; color: #555; font-size: 24px; font-weight: bold; }
 
         /* Bases */
-        .base { grid-column: span 6; grid-row: span 6; display: grid; grid-template-columns: repeat(2, 1fr); grid-template-rows: repeat(2, 1fr); padding: 15%; gap: 15%; border: 1px solid #000; }
+        .base { grid-column: span 6; grid-row: span 6; border: 1px solid #000; display: flex; align-items: center; justify-content: center; }
         .base-red { background: var(--red); grid-area: 10/1/16/7; }
         .base-green { background: var(--green); grid-area: 1/1/7/7; }
         .base-yellow { background: var(--yellow); grid-area: 1/10/7/16; }
         .base-blue { background: var(--blue); grid-area: 10/10/16/16; }
-        
-        .spot { background: white; border-radius: 10px; border: 2px solid #000; width: 100%; height: 100%; display: flex; align-items: center; justify-content: center; }
+        .base-inner { width: 75%; height: 75%; background: white; border-radius: 5px; display: grid; grid-template-columns: 1fr 1fr; grid-template-rows: 1fr 1fr; padding: 10%; gap: 15%; }
+        .spot { border-radius: 50%; border: 2px solid #ddd; background: #f9f9f9; position: relative; display: flex; align-items: center; justify-content: center; }
 
-        /* Pieces (Guti) */
-        .piece { width: 80%; height: 80%; border-radius: 50%; border: 2px solid #fff; box-shadow: 0 4px 6px rgba(0,0,0,0.4); }
-        .p-red { background: var(--red); }
-        .p-green { background: var(--green); }
-        .p-yellow { background: var(--yellow); }
-        .p-blue { background: var(--blue); }
+        /* 3D Guti Style */
+        .piece { width: 85%; height: 85%; border-radius: 50%; position: absolute; cursor: pointer; border: 2.5px solid rgba(255,255,255,0.9); box-shadow: 0 4px 8px rgba(0,0,0,0.4); display: flex; align-items: center; justify-content: center; transition: all 0.3s ease; z-index: 100; }
+        .piece::after { content: '★'; font-size: 12px; color: rgba(255,255,255,0.7); }
+        .p-red { background: radial-gradient(circle at 30% 30%, #ff5252, #b71c1c); }
+        .p-green { background: radial-gradient(circle at 30% 30%, #69f0ae, #1b5e20); }
+        .p-yellow { background: radial-gradient(circle at 30% 30%, #ffff8d, #f9a825); }
+        .p-blue { background: radial-gradient(circle at 30% 30%, #40c4ff, #0d47a1); }
 
-        /* Original Dice with Dots */
-        #dice-box {
-            position: absolute; width: 50px; height: 50px; background: #fff;
-            border-radius: 8px; border: 3px solid #333; display: grid;
-            grid-template-columns: repeat(3, 1fr); grid-template-rows: repeat(3, 1fr);
-            padding: 5px; box-sizing: border-box; cursor: pointer;
-            box-shadow: 0 5px 15px rgba(0,0,0,0.3); z-index: 1000;
-        }
-        .dot { background: #000; border-radius: 50%; width: 8px; height: 8px; margin: auto; display: none; }
-
-        /* Center */
+        /* Dice */
+        #dice-box { position: absolute; width: 60px; height: 60px; background: #fff; border-radius: 12px; border: 4px solid #333; display: grid; grid-template-columns: repeat(3, 1fr); grid-template-rows: repeat(3, 1fr); padding: 8px; cursor: pointer; z-index: 500; transition: transform 0.2s; }
+        .dot { background: #000; border-radius: 50%; width: 10px; height: 10px; margin: auto; display: none; }
         .center { grid-area: 7/7/10/10; background: conic-gradient(var(--green) 45deg, var(--yellow) 45deg 135deg, var(--blue) 135deg 225deg, var(--red) 225deg 315deg, var(--green) 315deg); border: 1px solid #000; }
     </style>
 </head>
 <body>
 
-    <a href="https://github.com/rohan-bro/Ludu-game/raw/main/app-release.apk" class="download-btn" download>
-        📲 DOWNLOAD APP
-    </a>
-
     <div class="board-wrapper">
         <div class="ludo-board" id="board">
-            <div class="base base-green" id="base-g"></div>
-            <div class="base base-yellow" id="base-y"></div>
-            <div class="base base-red" id="base-r"></div>
-            <div class="base base-blue" id="base-b"></div>
+            <div class="base base-green"><div class="base-inner" id="inner-green"></div></div>
+            <div class="base base-yellow"><div class="base-inner" id="inner-yellow"></div></div>
+            <div class="base base-red"><div class="base-inner" id="inner-red"></div></div>
+            <div class="base base-blue"><div class="base-inner" id="inner-blue"></div></div>
             <div class="center"></div>
         </div>
-        <div id="dice-box" onclick="rollDice()">
+        <div id="dice-box" onclick="roll()">
             <div class="dot d1"></div><div class="dot d2"></div><div class="dot d3"></div>
             <div class="dot d4"></div><div class="dot d5"></div><div class="dot d6"></div>
             <div class="dot d7"></div><div class="dot d8"></div><div class="dot d9"></div>
         </div>
     </div>
-
-    <p id="status" style="color:white; font-weight:bold; margin-top:20px;">TURN: <span id="player-name" style="color:red">RED</span></p>
+    <p id="turn-info" style="color:white; font-size:22px; font-weight:bold; margin-top:20px;">TURN: <span id="p-name" style="color:red">RED</span></p>
 
     <script>
+        let turn = 0, diceVal = 0, canRoll = true;
         const colors = ['red', 'green', 'yellow', 'blue'];
-        let turn = 0;
-        const dicePos = [{bottom:'-20px', left:'-20px'}, {top:'-20px', left:'-20px'}, {top:'-20px', right:'-20px', left:'auto'}, {bottom:'-20px', right:'-20px', left:'auto'}];
+        const dicePos = [{bottom:'-35px', left:'-35px'}, {top:'-35px', left:'-35px'}, {top:'-35px', right:'-35px', left:'auto'}, {bottom:'-35px', right:'-35px', left:'auto'}];
 
-        function initBoard() {
+        function init() {
             const b = document.getElementById('board');
-            const stars = [106, 118, 22, 202, 136, 88, 8, 216]; // Star spots
-            
+            const stars = [106, 118, 22, 202, 136, 88, 8, 216]; // Safe zones
             for(let i=0; i<225; i++) {
                 let r=Math.floor(i/15), c=i%15;
                 if((r<6 && c<6) || (r<6 && c>8) || (r>8 && c<6) || (r>8 && c>8) || (r>=6 && r<=8 && c>=6 && c<=8)) continue;
-                
                 const cell = document.createElement('div');
-                cell.className = 'cell';
-                if(stars.includes(i)) cell.classList.add('star');
-
-                // Color Paths
+                cell.className = 'cell'; cell.id = `c-${i}`;
+                if(stars.includes(i)) cell.classList.add('star-cell');
                 if(r==7 && c>0 && c<6) cell.style.background = 'var(--red)';
                 if(c==7 && r>0 && r<6) cell.style.background = 'var(--green)';
                 if(r==7 && c>8 && c<14) cell.style.background = 'var(--yellow)';
                 if(c==7 && r>8 && r<14) cell.style.background = 'var(--blue)';
-
                 b.appendChild(cell);
             }
-            renderPieces();
-            updateUI();
-        }
-
-        function renderPieces() {
-            const pColors = ['green', 'yellow', 'red', 'blue'];
-            ['g', 'y', 'r', 'b'].forEach((id, idx) => {
-                const base = document.getElementById('base-'+id);
-                for(let j=0; j<4; j++) {
-                    const spot = document.createElement('div');
-                    spot.className = 'spot';
-                    const p = document.createElement('div');
-                    p.className = `piece p-${pColors[idx]}`;
-                    spot.appendChild(p);
-                    base.appendChild(spot);
+            colors.forEach(col => {
+                const inner = document.getElementById(`inner-${col}`);
+                for(let i=0; i<4; i++) {
+                    const s = document.createElement('div'); s.className = 'spot'; s.id = `${col}-s-${i}`;
+                    const p = document.createElement('div'); p.className = `piece p-${col}`;
+                    p.id = `${col}-p-${i}`; p.onclick = (e) => { e.stopPropagation(); move(col, i); };
+                    s.appendChild(p); inner.appendChild(s);
                 }
             });
+            updateDiceUI();
         }
 
-        function rollDice() {
-            const val = Math.floor(Math.random()*6)+1;
+        function roll() {
+            if(!canRoll) return;
+            diceVal = Math.floor(Math.random()*6)+1;
             const dots = document.querySelectorAll('.dot');
             dots.forEach(d => d.style.display = 'none');
-
-            const patterns = {
-                1: [5], 2: [1, 9], 3: [1, 5, 9],
-                4: [1, 3, 7, 9], 5: [1, 3, 5, 7, 9], 6: [1, 3, 4, 6, 7, 9]
-            };
+            const patterns = {1:[5], 2:[1,9], 3:[1,5,9], 4:[1,3,7,9], 5:[1,3,5,7,9], 6:[1,3,4,6,7,9]};
+            patterns[diceVal].forEach(p => document.querySelector(`.d${p}`).style.display = 'block');
             
-            patterns[val].forEach(pos => {
-                document.querySelector(`.d${pos}`).style.display = 'block';
-            });
-
-            setTimeout(() => { turn = (turn+1)%4; updateUI(); }, 600);
+            canRoll = false;
+            // logic: If no piece can move, skip turn after 1s
+            setTimeout(() => { if(diceVal < 6) nextTurn(); else canRoll = true; }, 1500);
         }
 
-        function updateUI() {
+        function move(color, id) {
+            if(colors[turn] !== color || diceVal === 0) return;
+            const p = document.getElementById(`${color}-p-${id}`);
+            const parent = p.parentElement;
+            
+            if(parent.className === 'spot' && diceVal === 6) {
+                const startCells = {red:106, green:22, yellow:118, blue:202};
+                document.getElementById(`c-${startCells[color]}`).appendChild(p);
+                diceVal = 0; canRoll = true;
+            } else if(parent.className === 'cell') {
+                // simple move logic for demo
+                alert("Guti is moving...");
+                diceVal = 0; nextTurn();
+            }
+        }
+
+        function nextTurn() { turn = (turn+1)%4; canRoll = true; updateDiceUI(); }
+        
+        function updateDiceUI() {
             const d = document.getElementById('dice-box');
-            const pos = dicePos[turn];
-            d.style.top = pos.top || 'auto'; d.style.bottom = pos.bottom || 'auto';
-            d.style.left = pos.left || 'auto'; d.style.right = pos.right || 'auto';
-            document.getElementById('player-name').innerText = colors[turn].toUpperCase();
-            document.getElementById('player-name').style.color = `var(--${colors[turn]})`;
-        }
-
-        initBoard();
-    </script>
-</body>
-</html>
+            const pos
